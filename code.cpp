@@ -1,11 +1,17 @@
-//Isabelle Viraldo
-//08/01/2023
-//Mini Project 7
+//08/01/2023 << last edited
+
+//just as a reminder for what this code does (though through running it you will get the gist)
+/*
+The user is ordering containers from our company, using variable prices depending on size, shipping type, 
+and taxes, we calculate the cost of the total order and print a reciept at the end. Nothing overly 
+complex.
+*/
 
 #include <iostream>
 #include <iomanip>
 using namespace std;
 
+//initialise functions
 int vol(int, int, int);
 double addBox(int);
 double shipping(double);
@@ -13,6 +19,7 @@ void printReciept();
 double payment(int, double);
 void getDate(int);
 
+//initialise variables
 int payMethod, numBoxes, length, width, height, volume;
 double costPer, thisDelivery, deliveryPrice, salesTax, shippingCost, taxCost, totalCost, totalSubTotal;
 char date[10];
@@ -22,6 +29,7 @@ bool didpay = false;
 string responce, customer, lastname;
 stringstream reciept;
 
+//info required for each box
 struct box{
     int size;
     double price;
@@ -30,11 +38,13 @@ struct box{
     double shippingCost;
 };
 
-box order[30];
+box order[30]; //can cause stack overflow issues, so to make better, 
+               //include a checker making sure user doesnt go over limit
 
 int main() {
     cout << setprecision(2) << fixed;
 
+    //opening lines, getting date, name, etc
     cout << "****East County Cargo Transport****" << endl;
     cout << endl;
     cout << "Cashiering system 2.0" << endl;
@@ -52,26 +62,29 @@ int main() {
     cout << "Customer - " << customer << " " << lastname << endl;
     cout << endl;
     
-    
     //adding stuff to reciept
-    reciept <<setprecision (2) << fixed << "East County Cargo Transport" << endl
+    reciept << setprecision (2) << fixed << "East County Cargo Transport" << endl
     << endl
     << "123 First Street" << endl
     << "El Cajon, CA  92071" << endl
     << endl
     << "Customer Receipt - ";
-    
+
     for (int i = 0; i < 10; i++){
         reciept << date[i];
     }
     reciept << endl
     << "Customer Name: " << customer << " " << lastname << endl
     << endl;
-    
+
+    //setting variables init values
     totalSubTotal = 0;
     numBoxes = 1;
+
+    //gets first box order
     totalSubTotal += addBox(numBoxes);
-    
+
+    //continues to get box orders until user doesnt want any more
     while(!done){
         cout << "Another container (Y/N): ";
         cin >> responce;
@@ -79,7 +92,7 @@ int main() {
         
         int yes = responce.compare("Y");
         int no = responce.compare("N");
-        
+
         if (yes == 0){
             numBoxes = numBoxes + 1;
             totalSubTotal = totalSubTotal + addBox(numBoxes);
@@ -92,18 +105,21 @@ int main() {
             break;
         } 
     }
-    
+
+    //calculates tax of total order
     salesTax = 0.0775;
     taxCost = totalSubTotal * salesTax;
     totalCost = totalSubTotal + taxCost;
-    
+
+    //prints out cost to user
     cout << " " << endl;
     cout << setw(45) << left << "Subtotal:" << setw(2) << left << "$" << setw(5) << right << totalSubTotal << endl;
     cout << setw(45) << left << "Sales Tax - 7.75%" << setw(2) << left << "$" << setw(8) << right << taxCost << endl;
     cout << endl;
     cout << setw(45) << left << "Total" << setw(2) << left << "$" << setw(8) << right << totalCost << endl;
     cout << endl;
-    
+
+    //getting payment
     while (!didpay){
         cout << "Payment (1. Cash, 2. Check, 3. Credit): ";
         cin >> payMethod;
@@ -119,19 +135,22 @@ int main() {
     cout << endl;
     cout << "________________________________________________________________________" << endl;
     cout << endl;
-    
+
+    //adding cost info to reciept
     reciept << setw(45) << left << "Subtotal" << setw(2) << left << "$" << setw(5) << right << totalSubTotal << endl
     << setw(45) << left << "Sales Tax - 7.75%" << setw(2) << left << "$" << setw(8) << right << taxCost << endl
     << endl
     << setw(45) << left << "Total" << setw(2) << left << "$" << setw(8) << right << totalCost << endl
     << endl;
-    
+
+    //printing out reciept to user
     string outreciept = reciept.str();
     cout << outreciept;
-   
-    return 0;
+
+    return 0; //all c++ main functions must return 0
 }
 
+//calculating the date the delivery will arrive
 void getDate(int deliveryType){
     bool leapYear = false;
     int daysIncrease;
@@ -142,22 +161,26 @@ void getDate(int deliveryType){
     } else {
         daysIncrease = 2;
     }
-    
+
+    //get month num from char to int
     int month = (date[1] - '0');
     month = month + (10 * (date[0] - '0'));
 
+    //get day num from char to int
     int day = (date[4] - '0');
     day = day + (10 * (date[3] - '0'));
-    
+
+    //get year num from char to int
     int year = (date[9] - '0');
     year = year + (10 * (date[8] - '0'));
     year = year + (100 * (date[7] - '0'));
     year = year + (1000 * (date[6] - '0'));
-    
+
     if (year % 4 == 0){
         leapYear = true;
     }
-    
+
+    //setting the max days to num of days in user's month
     int maxDays = -1;
     if (month == 4 || month == 6 || month == 9 || month == 11){
         maxDays = 30;
@@ -169,9 +192,8 @@ void getDate(int deliveryType){
     } else {
         maxDays = 31;
     }
-    
-    //new date
-    
+
+    //using num of days in user's month to add days so arrival date is valid
     day = day + daysIncrease;
     if (day > maxDays){
         day = day - maxDays;
@@ -182,33 +204,31 @@ void getDate(int deliveryType){
         }
     }
     
-    
+    //spacing for the reciept because it was such a pain to figure out
     int sVar = 9;
-    
-    if (order[numBoxes-1].shippingTypeNum == 2){
-        sVar = sVar + 1;
-    }
-    if (month > 9){
-        sVar = sVar - 1;
-    }
-    if (day > 9){
-        sVar = sVar - 1;
-    }
-    
+    if (order[numBoxes-1].shippingTypeNum == 2){sVar = sVar + 1;}
+    if (month > 9){sVar = sVar - 1;}
+    if (day > 9){sVar = sVar - 1;}
     reciept << month << "/" << day << "/" << setw(sVar) << left << year;
 }
 
+//class requirement to calculate volume in separate function
 int vol(int l, int w, int h){
     return l*w*h;
 }
 
+//calculates shipping cost
+//not actually a lot going on, just a lot of options going on
 double shipping(double size){
     double shipcost = 0.0;
     int shippingchoice = 0;
+    
     while (true){
         cout << "-" << endl;
         cout << "How is this container to be shipped (choose one):" << endl;
         cout << endl;
+        
+        //gets shipping type from user (options available depend on size of box)
         if (size < 30){
             cout << "(1) Standard - (one to two weeks) - No change to the price" << endl;
             cout << "(2) Fast Ground - (3 to 5 business days) - Extra $1.50 per cubic foot" << endl;
@@ -223,6 +243,8 @@ double shipping(double size){
         }
         cin >> shippingchoice;
         cout << "-" << endl;
+
+        //calculates cost of shipping box based on size of box as well as shipping type
         if (shippingchoice == 1){
             cout << setw(45) << left << "Standard: " << setw(5) << left << "$" << shipcost << endl;
             cout << endl;
@@ -247,8 +269,13 @@ double shipping(double size){
     }
 }
 
+//where the user adds the box specifications
 double addBox(int num){
-     while (!is65orLess) {
+
+    //box can't be larger than 65 cubic feet
+    while (!is65orLess) {
+
+        //l, w, h
         cout << "Enter dimensions for package #" << num << " (in feet):" << endl;
         cout << "Length: ";
         cin >> length;
@@ -259,7 +286,8 @@ double addBox(int num){
         cout << "-" << endl;
    
         volume = vol(length, width, height);
-   
+
+        //checks if within size requirements
         if (volume <= 65){
             order[numBoxes-1].size = volume;
             is65orLess = true;
@@ -267,8 +295,11 @@ double addBox(int num){
             cout << "This package exceeds the 65 cubic foot limit. Please input again." << endl;
         }
     }
+
+    //feedback for user
     cout << "Volume of container #" << num << " is " << volume << " cu ft" << endl;
-   
+
+    //adjusts cost dependant on size of container
     if (volume < 15){
         costPer = 1.50;
         shippingCost = static_cast<double>(volume) * costPer;
@@ -288,31 +319,28 @@ double addBox(int num){
     
     //get shipping cost
     thisDelivery = shipping(volume);
+
+    //record specific places where cost comes from for later reference
     order[numBoxes-1].shippingCost = thisDelivery;
     deliveryPrice = deliveryPrice + thisDelivery;
     shippingCost = shippingCost + thisDelivery;
-    
+
+    //reciept spacing specifications part 2
     int cVar = 29;
     if (order[numBoxes-1].size > 9){
         cVar = cVar - 1;
     }
-    
     reciept << "Container #" << numBoxes << " - " << order[numBoxes-1].size << setw(cVar) << left << " cu ft" << setw(2) << left << "$" << setw(8) << right << order[numBoxes-1].price << endl
         << "Shipping: " << order[numBoxes-1].shippingType << " - Est. Delivery - ";
         getDate(order[numBoxes-1].shippingTypeNum);
         reciept << setw(2) << left << "$" << setw(8) << right << order[numBoxes-1].shippingCost << endl
         << endl;
     
-    
-    
-    
-    
-    
-    
     is65orLess = false;
     return shippingCost;
 }
 
+//gets payment from user
 double payment(int pay, double price){
     double cash;
     char cardtype;
@@ -321,11 +349,15 @@ double payment(int pay, double price){
     bool needpayment = true;
     bool cardtypeentered = false;
     
+    //if its cash, accept raw money, make sure to give change if needed
+    //if its check, get drivers lisence info and make sure its valid, then its paid in full exact
+    //if bank account, enter type, then card, then its paid in full exact
     if (pay == 1){
         while (needpayment){
             cout << setw(45) << left << "Accepted:" << setw(4) << left << "$";
             cin >> cash;
-        
+
+            //checking for enough money, giving change
             if (cash < price){
                 cout << "Your order costs $" << price << ", you must enter at least that much, change will be given" << endl;
             } else {
@@ -336,10 +368,20 @@ double payment(int pay, double price){
     } else if (pay == 2){
         while (needpayment){
             cout << setw(45) << left << "Enter Driver License No:";
+
+            //entering recieved lisence number as array of char
             for (int x = 0; x < 8; x++){
                 cin >> drivers[x];
                 }
-            if (static_cast<int>(drivers[0]) < 123 && static_cast<int>(drivers[0]) > 96 && static_cast<int>(drivers[1]) < 58 && static_cast<int>(drivers[1]) > 47 && static_cast<int>(drivers[2]) < 58 && static_cast<int>(drivers[2]) > 47 && static_cast<int>(drivers[3]) < 58 && static_cast<int>(drivers[3]) > 47 && static_cast<int>(drivers[4]) < 58 && static_cast<int>(drivers[4]) > 47 && static_cast<int>(drivers[5]) < 58 && static_cast<int>(drivers[5]) > 47 && static_cast<int>(drivers[6]) < 58 && static_cast<int>(drivers[6]) > 47 && static_cast<int>(drivers[7]) < 58 && static_cast<int>(drivers[7]) > 47 ){
+            //checking lisence is valid
+            if (static_cast<int>(drivers[0]) < 123 && static_cast<int>(drivers[0]) > 96 && 
+                static_cast<int>(drivers[1]) < 58 && static_cast<int>(drivers[1]) > 47 && 
+                static_cast<int>(drivers[2]) < 58 && static_cast<int>(drivers[2]) > 47 && 
+                static_cast<int>(drivers[3]) < 58 && static_cast<int>(drivers[3]) > 47 && 
+                static_cast<int>(drivers[4]) < 58 && static_cast<int>(drivers[4]) > 47 && 
+                static_cast<int>(drivers[5]) < 58 && static_cast<int>(drivers[5]) > 47 && 
+                static_cast<int>(drivers[6]) < 58 && static_cast<int>(drivers[6]) > 47 && 
+                static_cast<int>(drivers[7]) < 58 && static_cast<int>(drivers[7]) > 47 ){
                 cout << setw(45) << left << "Accepted Check Payment:" << setw(2) << left << "$" << setw(8) << right << price << endl;
                 return true;
             } else {
@@ -348,6 +390,8 @@ double payment(int pay, double price){
         }
     } else if (pay == 3){
         while (needpayment){
+            
+            //getting card type
             cout << setw(45) << left << "Visa (V) or Mastercard (M):";
             cin >> cardtype;
             switch (cardtype){
@@ -359,10 +403,16 @@ double payment(int pay, double price){
             }
             if (cardtypeentered){
                 cout << setw(45) << left << "Enter Last Four Digits of Card:";
+                
+                //entering recieved card number as array of char
                 for (int x = 0; x < 4; x++){
                     cin >> card[x];
                 }
-                if (static_cast<int>(card[0]) < 58 && static_cast<int>(card[0]) > 47 && static_cast<int>(card[1]) < 58 && static_cast<int>(card[1]) > 47 && static_cast<int>(card[2]) < 58 && static_cast<int>(card[2]) > 47 && static_cast<int>(card[3]) < 58 && static_cast<int>(card[3]) > 47){
+                //checking card is valid
+                if (static_cast<int>(card[0]) < 58 && static_cast<int>(card[0]) > 47 && 
+                    static_cast<int>(card[1]) < 58 && static_cast<int>(card[1]) > 47 && 
+                    static_cast<int>(card[2]) < 58 && static_cast<int>(card[2]) > 47 && 
+                    static_cast<int>(card[3]) < 58 && static_cast<int>(card[3]) > 47){
                     cout << setw(45) << left << "Accepted Credit Card Payment:" << setw(2) << left << "$" << setw(8) << right << price << endl;
                     return true;
                 } else {
@@ -373,6 +423,8 @@ double payment(int pay, double price){
         }
     } else { return false; }
 }
+
+//expected output
 
 /*
 Output:
